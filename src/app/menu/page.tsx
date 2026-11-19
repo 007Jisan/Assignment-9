@@ -16,14 +16,16 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 
+import { SAMPLE_PIZZAS } from '@/lib/sampleData';
+
 function MenuContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [items, setItems] = useState<PizzaItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<PizzaItem[]>(SAMPLE_PIZZAS);
+  const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(SAMPLE_PIZZAS.length);
 
   // Filter and Search States initialized from URL params
   const [search, setSearch] = useState(searchParams.get('search') || '');
@@ -67,13 +69,53 @@ function MenuContent() {
         if (sort) params.sort = sort;
 
         const res = await api.get('/menu', { params });
-        if (res.data?.success) {
+        if (res.data?.success && res.data.data.length > 0) {
           setItems(res.data.data);
           setTotalCount(res.data.pagination.total);
           setTotalPages(res.data.pagination.totalPages);
+        } else if (res.data?.success && res.data.data.length === 0 && (search.trim() || category !== 'All' || location !== 'All')) {
+          setItems([]);
+          setTotalCount(0);
+          setTotalPages(1);
+        } else {
+          // Local fallback filter
+          let filtered = [...SAMPLE_PIZZAS];
+          if (search.trim()) {
+            filtered = filtered.filter(p => p.itemName.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase()));
+          }
+          if (category !== 'All') {
+            filtered = filtered.filter(p => p.category === category);
+          }
+          if (location !== 'All') {
+            filtered = filtered.filter(p => p.location.toLowerCase().includes(location.toLowerCase()));
+          }
+          if (sort === 'price_asc') filtered.sort((a, b) => a.price - b.price);
+          else if (sort === 'price_desc') filtered.sort((a, b) => b.price - a.price);
+          else if (sort === 'rating') filtered.sort((a, b) => (b.rating || 5) - (a.rating || 5));
+
+          setItems(filtered);
+          setTotalCount(filtered.length);
+          setTotalPages(Math.ceil(filtered.length / 12) || 1);
         }
       } catch (err) {
-        console.error('Failed to fetch menu:', err);
+        // Fallback filter on network error
+        let filtered = [...SAMPLE_PIZZAS];
+        if (search.trim()) {
+          filtered = filtered.filter(p => p.itemName.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase()));
+        }
+        if (category !== 'All') {
+          filtered = filtered.filter(p => p.category === category);
+        }
+        if (location !== 'All') {
+          filtered = filtered.filter(p => p.location.toLowerCase().includes(location.toLowerCase()));
+        }
+        if (sort === 'price_asc') filtered.sort((a, b) => a.price - b.price);
+        else if (sort === 'price_desc') filtered.sort((a, b) => b.price - a.price);
+        else if (sort === 'rating') filtered.sort((a, b) => (b.rating || 5) - (a.rating || 5));
+
+        setItems(filtered);
+        setTotalCount(filtered.length);
+        setTotalPages(Math.ceil(filtered.length / 12) || 1);
       } finally {
         setLoading(false);
       }

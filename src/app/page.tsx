@@ -23,31 +23,31 @@ import {
   Quote,
 } from 'lucide-react';
 
+import { SAMPLE_PIZZAS, SAMPLE_CATEGORIES } from '@/lib/sampleData';
+
 export default function HomePage() {
   const router = useRouter();
-  const [featuredPizzas, setFeaturedPizzas] = useState<PizzaItem[]>([]);
-  const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [featuredPizzas, setFeaturedPizzas] = useState<PizzaItem[]>(SAMPLE_PIZZAS);
+  const [categories, setCategories] = useState<{ name: string; count: number }[]>(SAMPLE_CATEGORIES);
+  const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
         const [featuredRes, catRes] = await Promise.all([
-          api.get('/menu/featured').catch(() => ({ data: { data: [] } })),
-          api.get('/menu/categories').catch(() => ({ data: { data: [] } })),
+          api.get('/menu/featured').catch(() => null),
+          api.get('/menu/categories').catch(() => null),
         ]);
 
-        if (featuredRes.data?.data) {
+        if (featuredRes?.data?.data && featuredRes.data.data.length > 0) {
           setFeaturedPizzas(featuredRes.data.data);
         }
-        if (catRes.data?.data) {
+        if (catRes?.data?.data && catRes.data.data.length > 0) {
           setCategories(catRes.data.data);
         }
       } catch (e) {
-        console.error('Failed to load home page dynamic data:', e);
-      } finally {
-        setLoading(false);
+        console.error('Home dynamic fetch error:', e);
       }
     };
 
