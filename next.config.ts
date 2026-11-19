@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'plus.unsplash.com' },
     ],
   },
+  experimental: {
+    agentUpgrade: 'security',
+  } as any,
 };
 
 export default nextConfig;
