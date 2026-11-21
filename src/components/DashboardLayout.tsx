@@ -198,7 +198,7 @@ export function DashboardLayout({ children, allowedRole }: DashboardLayoutProps)
         </div>
 
         {/* User Profile Card at bottom of sidebar */}
-        <div className="p-4 border-t border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50">
+        <div className="p-4 border-t border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50 space-y-2.5">
           <div className="flex items-center gap-3">
             {user.image ? (
               <img
@@ -224,15 +224,20 @@ export function DashboardLayout({ children, allowedRole }: DashboardLayoutProps)
                 )}
               </div>
             </div>
-
-            <button
-              onClick={logout}
-              title="Sign Out"
-              className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              logout();
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-900/40 transition-colors cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
 
@@ -256,10 +261,23 @@ export function DashboardLayout({ children, allowedRole }: DashboardLayoutProps)
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="text-xs font-bold text-red-600 dark:text-red-400 hover:underline flex items-center gap-1"
+              className="text-xs font-bold text-stone-600 dark:text-stone-300 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1"
             >
-              <Pizza className="w-3.5 h-3.5" /> Back to Store
+              <Pizza className="w-3.5 h-3.5" /> Store
             </Link>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                logout();
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-900/40 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </header>
 

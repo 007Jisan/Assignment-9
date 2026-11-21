@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -24,6 +24,22 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
 
   const getDashboardLink = () => {
     if (!user) return '/login';
@@ -170,11 +186,11 @@ export function Navbar() {
               </div>
             ) : (
               /* User Profile Dropdown */
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  onBlur={() => setTimeout(() => setDropdownOpen(false), 200)}
-                  className="flex items-center gap-2.5 p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-900 border border-stone-200 dark:border-stone-800 transition-all focus:outline-none"
+                  type="button"
+                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-2.5 p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-900 border border-stone-200 dark:border-stone-800 transition-all focus:outline-none cursor-pointer"
                 >
                   {user?.image ? (
                     <img
@@ -190,12 +206,15 @@ export function Navbar() {
                   <span className="hidden md:block text-sm font-medium text-stone-800 dark:text-stone-200 max-w-[120px] truncate">
                     {user?.name?.split(' ')[0]}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-stone-400" />
+                  <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Dropdown Menu */}
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div
+                    onMouseDown={(e) => e.stopPropagation()}
+                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  >
                     <div className="px-4 py-2 border-b border-stone-100 dark:border-stone-800">
                       <p className="text-sm font-bold text-stone-900 dark:text-stone-100 truncate">
                         {user?.name}
@@ -225,6 +244,7 @@ export function Navbar() {
 
                     <Link
                       href={getDashboardLink()}
+                      onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                     >
                       <LayoutDashboard className="w-4 h-4 text-red-500" />
@@ -233,6 +253,7 @@ export function Navbar() {
 
                     <Link
                       href={getProfileSettingsLink()}
+                      onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                     >
                       <UserIcon className="w-4 h-4 text-stone-400" />
@@ -242,8 +263,14 @@ export function Navbar() {
                     <div className="border-t border-stone-100 dark:border-stone-800 my-1" />
 
                     <button
-                      onClick={logout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-left"
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDropdownOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors text-left cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign Out
@@ -293,12 +320,16 @@ export function Navbar() {
                 Go to Dashboard
               </Link>
               <button
-                onClick={() => {
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   setMobileMenuOpen(false);
                   logout();
                 }}
-                className="w-full text-left px-3 py-2 rounded-lg font-semibold text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-900"
+                className="w-full text-left px-3 py-2 rounded-lg font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer flex items-center gap-2"
               >
+                <LogOut className="w-4 h-4" />
                 Sign Out
               </button>
             </>

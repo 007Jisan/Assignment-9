@@ -110,12 +110,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('pizzahub_token');
-    localStorage.removeItem('pizzahub_user');
-    document.cookie = 'pizzahub_token=; path=/; max-age=0;';
-    window.location.href = '/';
+    try {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('pizzahub_token');
+      localStorage.removeItem('pizzahub_user');
+      document.cookie = 'pizzahub_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0;';
+    } catch (e) {
+      console.error('Logout cleanup error:', e);
+    }
+    // Hard navigate to login to clear all in-memory React states cleanly
+    window.location.replace('/login');
   };
 
   const updateUser = (data: Partial<User>) => {
