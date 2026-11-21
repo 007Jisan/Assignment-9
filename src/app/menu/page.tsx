@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 import { PizzaCard, PizzaItem } from '@/components/PizzaCard';
 import {
@@ -21,8 +22,10 @@ import { SAMPLE_PIZZAS } from '@/lib/sampleData';
 function MenuContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, user } = useAuth();
 
   const [items, setItems] = useState<PizzaItem[]>(SAMPLE_PIZZAS);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(SAMPLE_PIZZAS.length);
@@ -35,6 +38,25 @@ function MenuContent() {
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1', 10));
 
   const [locationsList, setLocationsList] = useState<string[]>([]);
+
+  // Fetch customer favorites
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'customer') {
+      api.get('/favorites/ids')
+        .then((res) => {
+          if (res.data?.success && Array.isArray(res.data.ids)) {
+            setFavoriteIds(res.data.ids);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setFavoriteIds([]);
+    }
+  }, [isAuthenticated, user]);
+
+  const handleFavoriteToggle = (id: string, isFav: boolean) => {
+    setFavoriteIds((prev) => (isFav ? [...prev, id] : prev.filter((favId) => favId !== id)));
+  };
 
   const categories = [
     'All',
@@ -267,7 +289,12 @@ function MenuContent() {
         ) : items.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => (
-              <PizzaCard key={item._id} item={item} />
+              <PizzaCard
+                key={item._id}
+                item={item}
+                isFavorited={favoriteIds.includes(item._id)}
+                onFavoriteToggle={handleFavoriteToggle}
+              />
             ))}
           </div>
         ) : (

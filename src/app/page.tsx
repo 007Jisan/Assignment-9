@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api';
 import { PizzaCard, PizzaItem } from '@/components/PizzaCard';
@@ -27,10 +28,31 @@ import { SAMPLE_PIZZAS, SAMPLE_CATEGORIES } from '@/lib/sampleData';
 
 export default function HomePage() {
   const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
   const [featuredPizzas, setFeaturedPizzas] = useState<PizzaItem[]>(SAMPLE_PIZZAS);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [categories, setCategories] = useState<{ name: string; count: number }[]>(SAMPLE_CATEGORIES);
   const [loading, setLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch customer favorites
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'customer') {
+      api.get('/favorites/ids')
+        .then((res) => {
+          if (res.data?.success && Array.isArray(res.data.ids)) {
+            setFavoriteIds(res.data.ids);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setFavoriteIds([]);
+    }
+  }, [isAuthenticated, user]);
+
+  const handleFavoriteToggle = (id: string, isFav: boolean) => {
+    setFavoriteIds((prev) => (isFav ? [...prev, id] : prev.filter((favId) => favId !== id)));
+  };
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -261,7 +283,12 @@ export default function HomePage() {
           ) : featuredPizzas.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {featuredPizzas.slice(0, 8).map((pizza) => (
-                <PizzaCard key={pizza._id} item={pizza} />
+                <PizzaCard
+                  key={pizza._id}
+                  item={pizza}
+                  isFavorited={favoriteIds.includes(pizza._id)}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
               ))}
             </div>
           ) : (

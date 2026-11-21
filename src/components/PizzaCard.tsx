@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -40,6 +40,10 @@ export function PizzaCard({ item, isFavorited = false, onFavoriteToggle }: Pizza
   const { isAuthenticated, user } = useAuth();
   const [favorited, setFavorited] = useState(isFavorited);
   const [favLoading, setFavLoading] = useState(false);
+
+  useEffect(() => {
+    setFavorited(isFavorited);
+  }, [isFavorited]);
 
   const isPremiumVendor = item.vendorId?.subscriptionPlan === 'premium';
   const displayImage = item.images?.[0] || 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800';

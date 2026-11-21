@@ -44,18 +44,70 @@ export default function MenuItemDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
+  // Helper for local date string in YYYY-MM-DD
+  const getLocalTodayDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Order modal state
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState('');
+  const [minAllowedDate, setMinAllowedDate] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [message, setMessage] = useState('');
   const [submittingOrder, setSubmittingOrder] = useState(false);
+
+  // Wishlist state
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
 
   // Review modal state
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Check if item is in favorites
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'customer' && id) {
+      api.get('/favorites')
+        .then((res) => {
+          if (res.data?.success && Array.isArray(res.data.data)) {
+            const hasIt = res.data.data.some((f: any) => f._id === id || f.id === id);
+            setIsFavorited(hasIt);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [id, isAuthenticated, user]);
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      toast.info('Please sign in to save pizzas to your wishlist.');
+      router.push(`/login?redirect=/menu/${id}`);
+      return;
+    }
+    if (user?.role !== 'customer') {
+      toast.error('Only customer accounts can maintain a wishlist.');
+      return;
+    }
+    try {
+      setFavLoading(true);
+      const res = await api.post('/favorites/toggle', { itemId: id });
+      if (res.data?.success) {
+        setIsFavorited(res.data.isFavorited);
+        toast.success(res.data.message);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update wishlist.');
+    } finally {
+      setFavLoading(false);
+    }
+  };
 
   // Fetch item and reviews
   useEffect(() => {
@@ -91,9 +143,10 @@ export default function MenuItemDetailsPage() {
     fetchDetails();
   }, [id]);
 
-  // Set default minimum delivery date to today
+  // Set default minimum delivery date to today in user's local timezone
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalTodayDateString();
+    setMinAllowedDate(today);
     setDeliveryDate(today);
   }, []);
 
@@ -124,8 +177,19 @@ export default function MenuItemDetailsPage() {
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!deliveryDate || !deliveryAddress.trim()) {
-      toast.error('Please specify both delivery date and address.');
+    const todayStr = getLocalTodayDateString();
+    if (!deliveryDate) {
+      toast.error('Please specify a delivery date.');
+      return;
+    }
+
+    if (deliveryDate < todayStr) {
+      toast.error('Delivery date cannot be in the past. Please select today or a future date.');
+      return;
+    }
+
+    if (!deliveryAddress.trim()) {
+      toast.error('Please specify a delivery address.');
       return;
     }
 
@@ -338,13 +402,29 @@ export default function MenuItemDetailsPage() {
                     Logged in as Admin. Customer food ordering is restricted.
                   </div>
                 ) : (
-                  <button
-                    onClick={handleOpenOrderModal}
-                    className="w-full py-4 rounded-2xl font-bold text-base text-white bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 shadow-xl shadow-red-500/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    Order Now ({formatPrice(item.price)})
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleOpenOrderModal}
+                      className="flex-1 py-4 rounded-2xl font-bold text-base text-white bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 shadow-xl shadow-red-500/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    >
+                      <ShoppingBag className="w-5 h-5" />
+                      Order Now ({formatPrice(item.price)})
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleToggleFavorite}
+                      disabled={favLoading}
+                      title={isFavorited ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                      className={`p-4 rounded-2xl border transition-all flex items-center justify-center cursor-pointer ${
+                        isFavorited
+                          ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-600 shadow-sm'
+                          : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:text-rose-600'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 ${isFavorited ? 'fill-rose-500 text-rose-500' : ''}`} />
+                    </button>
+                  </div>
                 )}
 
                 {/* Write Review Button */}
@@ -475,7 +555,7 @@ export default function MenuItemDetailsPage() {
                 </label>
                 <input
                   type="date"
-                  min={new Date().toISOString().split('T')[0]}
+                  min={minAllowedDate || getLocalTodayDateString()}
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
                   required
