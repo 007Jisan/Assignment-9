@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { ImageUpload } from '@/components/ImageUpload';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -31,6 +32,7 @@ export default function VendorMenuItemsPage() {
   const [editCategory, setEditCategory] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editLocation, setEditLocation] = useState('');
+  const [editImage, setEditImage] = useState('');
   const [submittingEdit, setSubmittingEdit] = useState(false);
 
   // Delete modal
@@ -61,6 +63,7 @@ export default function VendorMenuItemsPage() {
     setEditCategory(item.category);
     setEditDescription(item.description);
     setEditLocation(item.location);
+    setEditImage(item.images?.[0] || '');
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -75,6 +78,7 @@ export default function VendorMenuItemsPage() {
         category: editCategory,
         description: editDescription,
         location: editLocation,
+        images: editImage ? [editImage] : editingItem.images,
       });
 
       if (res.data?.success) {
@@ -364,6 +368,16 @@ export default function VendorMenuItemsPage() {
                     onChange={(e) => setEditDescription(e.target.value)}
                     required
                     className="w-full px-3.5 py-2 rounded-xl text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-none text-stone-800 dark:text-stone-200"
+                  />
+                </div>
+
+                <div>
+                  <ImageUpload
+                    value={editImage}
+                    onChange={setEditImage}
+                    label="Pizza Dish Photo"
+                    helperText="Upload a high quality photo of this item"
+                    aspectRatio="video"
                   />
                 </div>
 

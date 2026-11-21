@@ -13,12 +13,20 @@ export async function uploadToImgBB(file: File): Promise<string> {
     const data = await res.json();
     if (data.success && data.data?.url) {
       return data.data.url;
-    } else {
-      throw new Error(data.error?.message || 'Failed to upload image to ImgBB.');
     }
   } catch (error: any) {
-    console.warn('ImgBB upload fallback: using local object preview URL or default pizza photo', error);
-    // If offline or ImgBB key hits limit, return a reliable pizza image URL
-    return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800';
+    console.warn('ImgBB upload network failure or rate limit, falling back to base64 reader:', error);
   }
+
+  // Guaranteed fallback: Return the user's actual selected file encoded as a base64 Data URL
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = () => {
+      resolve('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800');
+    };
+    reader.readAsDataURL(file);
+  });
 }

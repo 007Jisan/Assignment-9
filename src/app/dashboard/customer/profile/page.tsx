@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
+import { ImageUpload } from '@/components/ImageUpload';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
-import { User, Mail, Image as ImageIcon, Shield, Save } from 'lucide-react';
+import { User, Mail, Shield, Save } from 'lucide-react';
 
 export default function CustomerProfilePage() {
   const { user, updateUser } = useAuth();
@@ -82,21 +83,15 @@ export default function CustomerProfilePage() {
               </div>
             </div>
 
-            {/* Profile Image URL */}
+            {/* Profile Avatar Upload */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1">
-                Avatar Image URL
-              </label>
-              <div className="relative">
-                <ImageIcon className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="url"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-none text-stone-800 dark:text-stone-200"
-                />
-              </div>
+              <ImageUpload
+                value={image}
+                onChange={setImage}
+                label="Profile Avatar Photo"
+                helperText="Upload your avatar file or change photo"
+                shape="circle"
+              />
             </div>
 
             {/* Read-only Security Info */}
