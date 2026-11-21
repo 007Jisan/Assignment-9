@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { api } from '@/lib/api';
 import { formatPrice, formatDate } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
   UtensilsCrossed,
   Clock,
@@ -14,6 +15,9 @@ import {
   Sparkles,
   ArrowRight,
   TrendingUp,
+  Check,
+  X,
+  ShoppingBag,
 } from 'lucide-react';
 import {
   BarChart,
@@ -28,8 +32,10 @@ import {
 export default function VendorDashboardOverview() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchStats = () => {
+    setLoading(true);
     api.get('/vendor/stats')
       .then((res) => {
         if (res.data?.success) {
@@ -38,7 +44,26 @@ export default function VendorDashboardOverview() {
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchStats();
   }, []);
+
+  const handleOrderAction = async (orderId: string, action: 'accept' | 'reject') => {
+    try {
+      setActionLoadingId(orderId);
+      const res = await api.put(`/vendor/orders/${orderId}/status`, { action });
+      if (res.data?.success) {
+        toast.success(`Order successfully ${action === 'accept' ? 'accepted' : 'rejected'}!`);
+        fetchStats();
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update order status.');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   // Sample analytics data for visual charts
   const chartData = [
@@ -275,6 +300,7 @@ export default function VendorDashboardOverview() {
                     <th className="pb-3">Customer</th>
                     <th className="pb-3">Delivery Date</th>
                     <th className="pb-3">Status</th>
+                    <th className="pb-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
@@ -299,6 +325,32 @@ export default function VendorDashboardOverview() {
                         >
                           {order.status}
                         </span>
+                      </td>
+                      <td className="py-3 text-right">
+                        {order.status === 'pending' ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOrderAction(order._id, 'accept')}
+                              disabled={actionLoadingId === order._id}
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <Check className="w-3 h-3" /> Accept
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOrderAction(order._id, 'reject')}
+                              disabled={actionLoadingId === order._id}
+                              className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-red-600 hover:bg-red-700 text-white transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+                            >
+                              <X className="w-3 h-3" /> Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-stone-400 font-semibold uppercase">
+                            {order.status}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}

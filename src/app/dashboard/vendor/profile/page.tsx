@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
 import { ImageUpload } from '@/components/ImageUpload';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
-import { User, Store, Mail, Shield, Save } from 'lucide-react';
+import { User, Store, Mail, Shield, Save, ShoppingBag } from 'lucide-react';
 
 export default function VendorProfilePage() {
   const { user, updateUser } = useAuth();
@@ -48,6 +49,25 @@ export default function VendorProfilePage() {
           <p className="text-xs text-stone-400 mt-0.5">
             Update your public restaurant details and profile image.
           </p>
+        </div>
+
+        {/* Quick link to incoming orders */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-bold text-stone-900 dark:text-stone-100">Looking for customer pizza orders?</p>
+              <p className="text-stone-500 dark:text-stone-400 text-[11px]">View delivery requests and accept or reject pending orders in Customer Orders.</p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/vendor/orders"
+            className="px-3.5 py-1.5 rounded-xl font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-xs whitespace-nowrap self-start sm:self-auto"
+          >
+            Go to Orders →
+          </Link>
         </div>
 
         <div className="bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 p-6 sm:p-8 shadow-xs">

@@ -29,7 +29,7 @@ function LoginContent() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showTestAccounts, setShowTestAccounts] = useState(false);
+  const [showTestAccounts, setShowTestAccounts] = useState(true);
 
   const handleRoleRedirect = (role: string) => {
     if (redirectUrl) {

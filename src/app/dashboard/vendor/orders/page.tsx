@@ -308,10 +308,35 @@ export default function VendorCustomerOrdersPage() {
                 />
               </div>
 
-              <div className="pt-2 flex justify-end">
+              <div className="pt-2 flex items-center justify-between">
+                {selectedOrder.status === 'pending' ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOrderAction(selectedOrder._id, 'accept')}
+                      disabled={actionLoadingId === selectedOrder._id}
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-md shadow-emerald-500/20 cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" /> Accept Order
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOrderAction(selectedOrder._id, 'reject')}
+                      disabled={actionLoadingId === selectedOrder._id}
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5 shadow-md shadow-red-500/20 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" /> Reject Order
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-xs text-stone-400 font-semibold uppercase">
+                    Status: {selectedOrder.status}
+                  </span>
+                )}
+
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300"
+                  className="px-5 py-2.5 rounded-xl font-bold text-xs bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 cursor-pointer"
                 >
                   Close
                 </button>
