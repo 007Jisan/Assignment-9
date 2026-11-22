@@ -2,10 +2,11 @@
 
 > A modern, role-based food discovery and pizza ordering web application built with **Next.js 16 (App Router)**, **React 19**, **Tailwind CSS**, and **Framer Motion**.
 
----
+<img width="1910" height="911" alt="image" src="https://github.com/user-attachments/assets/cb2c49db-7fbc-4e65-9470-78110283072e" />
+
 
 ## 🔗 Project Links
-- **Live Website**: [https://pizzahub-app.vercel.app](https://pizzahub-app.vercel.app)
+- **Live Website**:https://assignment-9-two-lovat.vercel.app/
 - **Client GitHub Repository**: [https://github.com/007Jisan/Assignment-9](https://github.com/007Jisan/Assignment-9)
 - **Server GitHub Repository**: [https://github.com/007Jisan/Assignment-9-server](https://github.com/007Jisan/Assignment-9-server)
 
