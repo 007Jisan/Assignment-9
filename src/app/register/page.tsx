@@ -19,7 +19,6 @@ import {
   Image as ImageIcon,
   Check,
   X,
-  KeyRound,
 } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -31,9 +30,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [image, setImage] = useState('');
-  const [role, setRole] = useState<'customer' | 'vendor' | 'admin'>('customer');
+  const [role, setRole] = useState<'customer' | 'vendor'>('customer');
   const [businessName, setBusinessName] = useState('');
-  const [adminKey, setAdminKey] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Live password validation
@@ -60,11 +58,6 @@ export default function RegisterPage() {
       return;
     }
 
-    if (role === 'admin' && !adminKey.trim()) {
-      toast.error('Please enter the Admin Security Key.');
-      return;
-    }
-
     try {
       setLoading(true);
       const user = await register({
@@ -74,22 +67,15 @@ export default function RegisterPage() {
         image: image.trim() || '',
         role,
         businessName: role === 'vendor' ? businessName.trim() : undefined,
-        adminKey: role === 'admin' ? adminKey.trim() : undefined,
       });
 
       toast.success(
         `Registration successful! Welcome to PizzaHub as ${
-          user.role === 'admin'
-            ? 'Administrator'
-            : user.role === 'vendor'
-            ? 'Restaurant Partner'
-            : 'Foodie'
+          user.role === 'vendor' ? 'Restaurant Partner' : 'Foodie'
         }.`
       );
 
-      if (user.role === 'admin') {
-        router.push('/dashboard/admin');
-      } else if (user.role === 'vendor') {
+      if (user.role === 'vendor') {
         router.push('/dashboard/vendor');
       } else {
         router.push('/dashboard/customer');
@@ -109,7 +95,7 @@ export default function RegisterPage() {
         email: `user_${randomId}@gmail.com`,
         name: name.trim() || 'New Foodie',
         image: image || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
-        role: role === 'admin' ? 'customer' : role,
+        role: role,
       });
       toast.success('Signed in with Google!');
       router.push(user.role === 'vendor' ? '/dashboard/vendor' : '/dashboard/customer');
@@ -132,16 +118,16 @@ export default function RegisterPage() {
             Create Your Account
           </h2>
           <p className="text-xs text-stone-500 dark:text-stone-400">
-            Join PizzaHub as a Pizza Lover, Restaurant Partner, or Administrator
+            Join PizzaHub as a Foodie Customer or Restaurant Partner
           </p>
         </div>
 
-        {/* Role Selector Tabs (Customer, Vendor, Admin) */}
+        {/* Role Selector Tabs (Customer, Vendor) */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
             Select Account Role <span className="text-red-500">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-stone-100 dark:bg-stone-800">
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-stone-100 dark:bg-stone-800">
             <button
               type="button"
               onClick={() => setRole('customer')}
@@ -152,7 +138,7 @@ export default function RegisterPage() {
               }`}
             >
               <User className="w-3.5 h-3.5" />
-              <span className="truncate">Customer</span>
+              <span className="truncate">Customer (Foodie)</span>
             </button>
 
             <button
@@ -165,20 +151,7 @@ export default function RegisterPage() {
               }`}
             >
               <Store className="w-3.5 h-3.5" />
-              <span className="truncate">Vendor</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setRole('admin')}
-              className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                role === 'admin'
-                  ? 'bg-white dark:bg-stone-900 text-purple-600 shadow-xs'
-                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span className="truncate">Admin</span>
+              <span className="truncate">Vendor (Restaurant Owner)</span>
             </button>
           </div>
         </div>
@@ -220,35 +193,6 @@ export default function RegisterPage() {
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-stone-800 dark:text-stone-200 transition-all"
                 />
               </div>
-            </div>
-          )}
-
-          {/* Admin Security Key if Admin */}
-          {role === 'admin' && (
-            <div className="p-3.5 rounded-2xl bg-purple-50/70 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800/60 space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
-                  <KeyRound className="w-3.5 h-3.5" />
-                  Admin Security Passcode <span className="text-red-500">*</span>
-                </label>
-                <span className="text-[10px] font-mono font-bold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 rounded-md">
-                  Key: pizza-admin-2026
-                </span>
-              </div>
-              <div className="relative">
-                <ShieldCheck className="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  value={adminKey}
-                  onChange={(e) => setAdminKey(e.target.value)}
-                  placeholder="Enter admin authorization key..."
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm bg-white dark:bg-stone-900 border border-purple-300 dark:border-purple-700 outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 text-stone-800 dark:text-stone-200 transition-all font-mono"
-                />
-              </div>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400">
-                🔒 Protected by assignment requirement: Admin accounts cannot be created without administrative authorization key (<code className="text-purple-600 dark:text-purple-400 font-bold">pizza-admin-2026</code>).
-              </p>
             </div>
           )}
 
@@ -347,9 +291,7 @@ export default function RegisterPage() {
             type="submit"
             disabled={loading}
             className={`w-full py-3 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-md ${
-              role === 'admin'
-                ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/20'
-                : role === 'vendor'
+              role === 'vendor'
                 ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-500/20'
                 : 'bg-red-600 hover:bg-red-700 shadow-red-500/20'
             }`}
@@ -362,9 +304,7 @@ export default function RegisterPage() {
             ) : (
               <>
                 <span>
-                  {role === 'admin'
-                    ? 'Register Admin Account'
-                    : role === 'vendor'
+                  {role === 'vendor'
                     ? 'Register Restaurant Partner'
                     : 'Complete Registration'}
                 </span>
