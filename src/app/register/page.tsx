@@ -19,6 +19,7 @@ import {
   Image as ImageIcon,
   Check,
   X,
+  KeyRound,
 } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -30,8 +31,9 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [image, setImage] = useState('');
-  const [role, setRole] = useState<'customer' | 'vendor'>('customer');
+  const [role, setRole] = useState<'customer' | 'vendor' | 'admin'>('customer');
   const [businessName, setBusinessName] = useState('');
+  const [adminKey, setAdminKey] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Live password validation
@@ -58,6 +60,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (role === 'admin' && !adminKey.trim()) {
+      toast.error('Please enter the Admin Security Key.');
+      return;
+    }
+
     try {
       setLoading(true);
       const user = await register({
@@ -67,15 +74,22 @@ export default function RegisterPage() {
         image: image.trim() || '',
         role,
         businessName: role === 'vendor' ? businessName.trim() : undefined,
+        adminKey: role === 'admin' ? adminKey.trim() : undefined,
       });
 
       toast.success(
         `Registration successful! Welcome to PizzaHub as ${
-          user.role === 'vendor' ? 'Restaurant Partner' : 'Foodie'
+          user.role === 'admin'
+            ? 'Administrator'
+            : user.role === 'vendor'
+            ? 'Restaurant Partner'
+            : 'Foodie'
         }.`
       );
 
-      if (user.role === 'vendor') {
+      if (user.role === 'admin') {
+        router.push('/dashboard/admin');
+      } else if (user.role === 'vendor') {
         router.push('/dashboard/vendor');
       } else {
         router.push('/dashboard/customer');
@@ -95,7 +109,7 @@ export default function RegisterPage() {
         email: `user_${randomId}@gmail.com`,
         name: name.trim() || 'New Foodie',
         image: image || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
-        role: role,
+        role: role === 'admin' ? 'customer' : role,
       });
       toast.success('Signed in with Google!');
       router.push(user.role === 'vendor' ? '/dashboard/vendor' : '/dashboard/customer');
@@ -118,16 +132,16 @@ export default function RegisterPage() {
             Create Your Account
           </h2>
           <p className="text-xs text-stone-500 dark:text-stone-400">
-            Join PizzaHub as a Foodie Customer or Restaurant Partner
+            Join PizzaHub as a Foodie Customer, Restaurant Partner, or Administrator
           </p>
         </div>
 
-        {/* Role Selector Tabs (Customer, Vendor) */}
+        {/* Role Selector Tabs (Customer, Vendor, Admin) */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">
             Select Account Role <span className="text-red-500">*</span>
           </label>
-          <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-stone-100 dark:bg-stone-800">
+          <div className="grid grid-cols-3 gap-2 p-1 rounded-2xl bg-stone-100 dark:bg-stone-800">
             <button
               type="button"
               onClick={() => setRole('customer')}
@@ -138,7 +152,7 @@ export default function RegisterPage() {
               }`}
             >
               <User className="w-3.5 h-3.5" />
-              <span className="truncate">Customer (Foodie)</span>
+              <span className="truncate">Customer</span>
             </button>
 
             <button
@@ -151,12 +165,48 @@ export default function RegisterPage() {
               }`}
             >
               <Store className="w-3.5 h-3.5" />
-              <span className="truncate">Vendor (Restaurant Owner)</span>
+              <span className="truncate">Vendor</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRole('admin')}
+              className={`py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                role === 'admin'
+                  ? 'bg-white dark:bg-stone-900 text-purple-600 shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span className="truncate">Admin</span>
             </button>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Admin Security Passcode Input (Required for Admin Role - clean & secure, no hint) */}
+          {role === 'admin' && (
+            <div className="p-4 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-850/80 space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5" />
+                Admin Security Key <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <ShieldCheck className="w-4 h-4 text-purple-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="password"
+                  value={adminKey}
+                  onChange={(e) => setAdminKey(e.target.value)}
+                  placeholder="Enter administrator authorization key"
+                  required
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm bg-white dark:bg-stone-900 border border-purple-200 dark:border-purple-700 outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 text-stone-800 dark:text-stone-200 transition-all font-mono"
+                />
+              </div>
+              <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                Authorized security passcode is required to create an administrator account.
+              </p>
+            </div>
+          )}
           {/* Full Name */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-1.5">
@@ -291,7 +341,9 @@ export default function RegisterPage() {
             type="submit"
             disabled={loading}
             className={`w-full py-3 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-md ${
-              role === 'vendor'
+              role === 'admin'
+                ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/20'
+                : role === 'vendor'
                 ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-500/20'
                 : 'bg-red-600 hover:bg-red-700 shadow-red-500/20'
             }`}
@@ -304,7 +356,9 @@ export default function RegisterPage() {
             ) : (
               <>
                 <span>
-                  {role === 'vendor'
+                  {role === 'admin'
+                    ? 'Register Administrator'
+                    : role === 'vendor'
                     ? 'Register Restaurant Partner'
                     : 'Complete Registration'}
                 </span>
