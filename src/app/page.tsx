@@ -62,7 +62,7 @@ export default function HomePage() {
           api.get('/menu/categories').catch(() => null),
         ]);
 
-        if (featuredRes?.data?.data && featuredRes.data.data.length > 0) {
+        if (featuredRes?.data?.success) {
           setFeaturedPizzas(featuredRes.data.data);
         }
         if (catRes?.data?.data && catRes.data.data.length > 0) {

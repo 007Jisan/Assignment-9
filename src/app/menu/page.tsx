@@ -91,14 +91,10 @@ function MenuContent() {
         if (sort) params.sort = sort;
 
         const res = await api.get('/menu', { params });
-        if (res.data?.success && res.data.data.length > 0) {
+        if (res.data?.success) {
           setItems(res.data.data);
           setTotalCount(res.data.pagination.total);
-          setTotalPages(res.data.pagination.totalPages);
-        } else if (res.data?.success && res.data.data.length === 0 && (search.trim() || category !== 'All' || location !== 'All')) {
-          setItems([]);
-          setTotalCount(0);
-          setTotalPages(1);
+          setTotalPages(res.data.pagination.totalPages || 1);
         } else {
           // Local fallback filter
           let filtered = [...SAMPLE_PIZZAS];

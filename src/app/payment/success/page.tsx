@@ -23,10 +23,17 @@ function SuccessContent() {
     });
 
     // If simulated demo payment, activate on server
-    if (isSimulated && user?._id) {
-      api.post('/webhook/simulate-success', { vendorId: user._id })
+    if (isSimulated || sessionId?.startsWith('demo_session_')) {
+      if (user?._id) {
+        api.post('/webhook/simulate-success', { vendorId: user._id })
+          .then(() => refreshUser())
+          .catch(() => {});
+      }
+    } else if (sessionId) {
+      // Real Stripe session: verify with Stripe API via backend
+      api.get(`/webhook/verify-session?sessionId=${sessionId}`)
         .then(() => refreshUser())
-        .catch(() => {});
+        .catch(() => refreshUser());
     } else {
       refreshUser();
     }
