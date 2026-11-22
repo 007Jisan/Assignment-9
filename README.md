@@ -5,9 +5,9 @@
 ---
 
 ## 🔗 Project Links
-- **Live Website**: [https://pizzahub-app.vercel.app](https://pizzahub-app.vercel.app) *(Deploy URL)*
-- **Client GitHub Repository**: [https://github.com/your-username/pizzahub-client](https://github.com/your-username/pizzahub-client)
-- **Server GitHub Repository**: [https://github.com/your-username/pizzahub-server](https://github.com/your-username/pizzahub-server)
+- **Live Website**: [https://pizzahub-app.vercel.app](https://pizzahub-app.vercel.app)
+- **Client GitHub Repository**: [https://github.com/007Jisan/Assignment-9](https://github.com/007Jisan/Assignment-9)
+- **Server GitHub Repository**: [https://github.com/007Jisan/Assignment-9-server](https://github.com/007Jisan/Assignment-9-server)
 
 ---
 
