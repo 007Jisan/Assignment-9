@@ -251,6 +251,17 @@ export function Navbar() {
                       Dashboard
                     </Link>
 
+                    {user?.role === 'customer' && (
+                      <Link
+                        href="/dashboard/customer/favorites"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                      >
+                        <Heart className="w-4 h-4 text-rose-500" />
+                        Saved Wishlist
+                      </Link>
+                    )}
+
                     <Link
                       href={getProfileSettingsLink()}
                       onClick={() => setDropdownOpen(false)}

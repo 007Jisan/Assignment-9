@@ -16,11 +16,14 @@ export default function CustomerFavoritesPage() {
     try {
       setLoading(true);
       const res = await api.get('/favorites');
-      if (res.data?.success) {
+      if (res.data?.success && Array.isArray(res.data.data)) {
         setFavorites(res.data.data);
+      } else {
+        setFavorites([]);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Failed to load favorites:', err);
+      toast.error('Could not load wishlist items.');
     } finally {
       setLoading(false);
     }

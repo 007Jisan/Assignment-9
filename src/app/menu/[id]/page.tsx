@@ -74,11 +74,10 @@ export default function MenuItemDetailsPage() {
   // Check if item is in favorites
   useEffect(() => {
     if (isAuthenticated && user?.role === 'customer' && id) {
-      api.get('/favorites')
+      api.get('/favorites/ids')
         .then((res) => {
-          if (res.data?.success && Array.isArray(res.data.data)) {
-            const hasIt = res.data.data.some((f: any) => f._id === id || f.id === id);
-            setIsFavorited(hasIt);
+          if (res.data?.success && Array.isArray(res.data.ids)) {
+            setIsFavorited(res.data.ids.includes(id));
           }
         })
         .catch(() => {});

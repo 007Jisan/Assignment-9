@@ -62,7 +62,7 @@ export function PizzaCard({ item, isFavorited = false, onFavoriteToggle }: Pizza
 
     if (!isAuthenticated) {
       toast.info('Please sign in to save items to your wishlist.');
-      router.push(`/login?redirect=/menu/${item._id}`);
+      router.push('/login');
       return;
     }
 
@@ -74,7 +74,7 @@ export function PizzaCard({ item, isFavorited = false, onFavoriteToggle }: Pizza
     try {
       setFavLoading(true);
       const res = await api.post('/favorites/toggle', { itemId: item._id });
-      if (res.data.success) {
+      if (res.data?.success) {
         setFavorited(res.data.isFavorited);
         if (onFavoriteToggle) {
           onFavoriteToggle(item._id, res.data.isFavorited);
@@ -82,7 +82,7 @@ export function PizzaCard({ item, isFavorited = false, onFavoriteToggle }: Pizza
         toast.success(res.data.message);
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to update favorite.');
+      toast.error(err.response?.data?.message || 'Failed to update wishlist.');
     } finally {
       setFavLoading(false);
     }
