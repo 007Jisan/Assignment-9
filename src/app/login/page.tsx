@@ -4,6 +4,7 @@ import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { signInWithGoogle } from '@/lib/googleAuth';
 import { toast } from 'sonner';
 import {
   Pizza,
@@ -55,19 +56,22 @@ function LoginContent() {
     }
   };
 
-  const handleGoogleLoginMock = async () => {
+  const handleGoogleLogin = async () => {
     try {
       setLoading(true);
+      const googleProfile = await signInWithGoogle();
       const user = await loginWithGoogle({
-        email: 'google_customer@example.com',
-        name: 'Google Customer',
-        image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
+        email: googleProfile.email,
+        name: googleProfile.name,
+        image: googleProfile.picture,
         role: 'customer',
       });
-      toast.success('Signed in with Google!');
+      toast.success(`Signed in as ${user.name}!`);
       handleRoleRedirect(user.role);
     } catch (err: any) {
-      toast.error(err.message || 'Google sign in failed');
+      if (err.message !== 'Sign in was canceled.') {
+        toast.error(err.response?.data?.message || err.message || 'Google sign-in failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -167,7 +171,7 @@ function LoginContent() {
         {/* Google OAuth Login Button */}
         <button
           type="button"
-          onClick={handleGoogleLoginMock}
+          onClick={handleGoogleLogin}
           disabled={loading}
           className="w-full py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/60 font-semibold text-xs flex items-center justify-center gap-2.5 transition-colors cursor-pointer"
         >
@@ -189,7 +193,7 @@ function LoginContent() {
               d="M12 4.77c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.95 1.19 15.24 0 12 0 7.34 0 3.25 2.57 1.21 6.6l4.11 3.13c.95-2.83 3.58-4.96 6.68-4.96z"
             />
           </svg>
-          Google Authentication
+          Sign in with Google
         </button>
 
         {/* Link to Register */}

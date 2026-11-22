@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { signInWithGoogle } from '@/lib/googleAuth';
 import { ImageUpload } from '@/components/ImageUpload';
 import { toast } from 'sonner';
 import {
@@ -101,20 +102,27 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleMock = async () => {
+  const handleGoogleSignUp = async () => {
     try {
       setLoading(true);
-      const randomId = Math.random().toString(36).substring(2, 7);
+      const googleProfile = await signInWithGoogle();
       const user = await loginWithGoogle({
-        email: `user_${randomId}@gmail.com`,
-        name: name.trim() || 'New Foodie',
-        image: image || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
+        email: googleProfile.email,
+        name: name.trim() || googleProfile.name,
+        image: image.trim() || googleProfile.picture,
         role: role === 'admin' ? 'customer' : role,
+        businessName: role === 'vendor' ? businessName.trim() || `${googleProfile.name}'s Pizzeria` : undefined,
       });
-      toast.success('Signed in with Google!');
+      toast.success(
+        `Welcome to PizzaHub, ${user.name}! Registered as ${
+          user.role === 'vendor' ? 'Restaurant Partner' : 'Foodie'
+        }.`
+      );
       router.push(user.role === 'vendor' ? '/dashboard/vendor' : '/dashboard/customer');
     } catch (err: any) {
-      toast.error(err.message || 'Google sign-up failed');
+      if (err.message !== 'Sign in was canceled.') {
+        toast.error(err.response?.data?.message || err.message || 'Google sign-up failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -379,7 +387,7 @@ export default function RegisterPage() {
         {/* Google OAuth Button */}
         <button
           type="button"
-          onClick={handleGoogleMock}
+          onClick={handleGoogleSignUp}
           disabled={loading}
           className="w-full py-2.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/60 font-semibold text-xs flex items-center justify-center gap-2.5 transition-colors cursor-pointer"
         >
@@ -401,7 +409,7 @@ export default function RegisterPage() {
               d="M12 4.77c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.95 1.19 15.24 0 12 0 7.34 0 3.25 2.57 1.21 6.6l4.11 3.13c.95-2.83 3.58-4.96 6.68-4.96z"
             />
           </svg>
-          Google Authentication
+          Sign up with Google
         </button>
 
         <p className="text-center text-xs text-stone-500">
