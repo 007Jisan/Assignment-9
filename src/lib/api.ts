@@ -30,9 +30,16 @@ api.interceptors.response.use(
   (error) => {
     if (typeof window !== 'undefined') {
       if (error.response?.status === 401) {
-        // Clear invalid token
-        localStorage.removeItem('pizzahub_token');
-        localStorage.removeItem('pizzahub_user');
+        const msg = String(error.response?.data?.message || '');
+        if (
+          msg.includes('No token provided') ||
+          msg.includes('Token expired') ||
+          msg.includes('Invalid token') ||
+          msg.includes('session invalid')
+        ) {
+          localStorage.removeItem('pizzahub_token');
+          localStorage.removeItem('pizzahub_user');
+        }
       }
     }
     return Promise.reject(error);
